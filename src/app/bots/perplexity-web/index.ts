@@ -67,7 +67,7 @@ export class PerplexityLabsBot extends AbstractBot {
         return
       }
       const payload = JSON.parse(data.slice(2))
-      if (payload[0] !== 'pplx-70b-online_query_progress') {
+      if (payload[0] !== 'llama-3.1-sonar-huge-128k-online_query_progress') {
         return
       }
       const chunk = payload[1]

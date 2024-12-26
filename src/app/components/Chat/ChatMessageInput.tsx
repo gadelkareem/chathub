@@ -13,7 +13,7 @@ import {
 } from '@floating-ui/react'
 import { fileOpen } from 'browser-fs-access'
 import { cx } from '~/utils'
-import { ClipboardEventHandler, FC, ReactNode, memo, useCallback, useMemo, useRef, useState } from 'react'
+import { ClipboardEventHandler, FC, ReactNode, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { GoBook, GoImage } from 'react-icons/go'
 import { RiDeleteBackLine } from 'react-icons/ri'
@@ -23,7 +23,7 @@ import Button from '../Button'
 import PromptCombobox, { ComboboxContext } from '../PromptCombobox'
 import PromptLibraryDialog from '../PromptLibrary/Dialog'
 import TextInput from './TextInput'
-import { getQueryParam } from './utils/queryUtils'
+import { getQueryParam } from '~/app/utils/queryUtils'
 
 interface Props {
   mode: 'full' | 'compact'
@@ -38,12 +38,12 @@ interface Props {
 
 const ChatMessageInput: FC<Props> = (props) => {
   const { t } = useTranslation()
-  const { placeholder = t('Use / to select prompts, Shift+Enter to add new line') } = props
+  const placeholder: string = t('Use / to select prompts, Shift+Enter to add new line')
 
   const [value, setValue] = useState('')
   const [image, setImage] = useState<File | undefined>(undefined)
-  const formRef = useRef<HTMLFormElement>(null)
-  const inputRef = useRef<HTMLTextAreaElement>(null)
+  const formRef = useRef<HTMLFormElement | null>(null)
+  const inputRef = useRef<HTMLTextAreaElement | null>(null)
   const [isPromptLibraryDialogOpen, setIsPromptLibraryDialogOpen] = useState(false)
 
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
@@ -159,6 +159,26 @@ const ChatMessageInput: FC<Props> = (props) => {
     }
   }, [])
 
+  const loadQuery = useCallback(() => {
+    const query = getQueryParam('q')
+    console.log('query', query)
+    if (query) {
+      setValue(query)
+      setTimeout(() => {
+        if (formRef.current && props.mode === 'compact') {
+          const event = new Event('submit', { cancelable: true, bubbles: true })
+          formRef.current.dispatchEvent(event)
+        }
+        const newUrl = window.location.href.split('#')[0] + '#/'
+        window.history.replaceState({}, '', newUrl)
+      }, 100)
+    }
+  }, [setValue, props.mode])
+
+  useEffect(() => {
+    loadQuery()
+  }, [loadQuery])
+
   return (
     <form className={cx('flex flex-row items-center gap-3', props.className)} onSubmit={onFormSubmit} ref={formRef}>
       {props.mode === 'full' && (
@@ -205,14 +225,13 @@ const ChatMessageInput: FC<Props> = (props) => {
           formref={formRef}
           name="input"
           disabled={props.disabled}
-          placeholder={placeholder as string}
+          placeholder={placeholder}
           value={value}
           onValueChange={onValueChange}
           autoFocus={props.autoFocus}
           onPaste={props.supportImageInput ? onPaste : undefined}
         />
       </div>
-      <button type="button" onClick={loadQuery}>Load Query</button>
       {props.actionButton || <Button text="-" className="invisible" size={props.mode === 'full' ? 'normal' : 'tiny'} />}
     </form>
   )
