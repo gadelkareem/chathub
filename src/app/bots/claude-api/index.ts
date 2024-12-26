@@ -23,6 +23,7 @@ export class ClaudeApiBot extends AbstractBot {
         'content-type': 'application/json',
         'x-api-key': this.config.claudeApiKey,
         'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
       },
       body: JSON.stringify({
         prompt,
@@ -34,9 +35,9 @@ export class ClaudeApiBot extends AbstractBot {
   }
 
   async doSendMessage(params: SendMessageParams) {
-    if (!(await requestHostPermission('https://*.anthropic.com/'))) {
-      throw new ChatError('Missing anthropic.com permission', ErrorCode.UNKOWN_ERROR)
-    }
+    // if (!(await requestHostPermission('https://*.anthropic.com/'))) {
+    //   throw new ChatError('Missing anthropic.com permission', ErrorCode.UNKOWN_ERROR)
+    // }
 
     if (!this.conversationContext) {
       this.conversationContext = { prompt: '' }

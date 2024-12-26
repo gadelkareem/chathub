@@ -23,6 +23,7 @@ import Button from '../Button'
 import PromptCombobox, { ComboboxContext } from '../PromptCombobox'
 import PromptLibraryDialog from '../PromptLibrary/Dialog'
 import TextInput from './TextInput'
+import { getQueryParam } from './utils/queryUtils'
 
 interface Props {
   mode: 'full' | 'compact'
@@ -211,6 +212,7 @@ const ChatMessageInput: FC<Props> = (props) => {
           onPaste={props.supportImageInput ? onPaste : undefined}
         />
       </div>
+      <button type="button" onClick={loadQuery}>Load Query</button>
       {props.actionButton || <Button text="-" className="invisible" size={props.mode === 'full' ? 'normal' : 'tiny'} />}
     </form>
   )
