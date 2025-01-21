@@ -30,7 +30,7 @@ export enum PoeGPTModel {
 export enum PoeClaudeModel {
   'claude-instant' = 'a2',
   'claude-instant-100k' = 'a2_100k',
-  'claude-2-100k' = 'a2_2',
+  'claude-3-100k' = 'a2_2',
 }
 
 export enum ClaudeMode {
@@ -41,12 +41,12 @@ export enum ClaudeMode {
 }
 
 export enum ClaudeAPIModel {
-  'claude-2' = 'claude-2',
+  'claude-3' = 'claude-3',
   'claude-instant-1' = 'claude-instant-v1',
 }
 
 export enum OpenRouterClaudeModel {
-  'claude-2' = 'claude-2',
+  'claude-3' = 'claude-3',
   'claude-instant-v1' = 'claude-instant-v1',
 }
 
@@ -73,11 +73,11 @@ const userConfigWithDefaultValue = {
   enabledBots: Object.keys(CHATBOTS).slice(0, 8) as BotId[],
   claudeApiKey: '',
   claudeMode: ClaudeMode.Webapp,
-  claudeApiModel: ClaudeAPIModel['claude-2'],
+  claudeApiModel: ClaudeAPIModel['claude-3'],
   chatgptWebAccess: false,
   claudeWebAccess: false,
   openrouterOpenAIModel: CHATGPT_API_MODELS[0] as (typeof CHATGPT_API_MODELS)[number],
-  openrouterClaudeModel: OpenRouterClaudeModel['claude-2'],
+  openrouterClaudeModel: OpenRouterClaudeModel['claude-3'],
   openrouterApiKey: '',
   perplexityMode: PerplexityMode.Webapp,
   perplexityApiKey: '',
@@ -106,10 +106,10 @@ export async function getUserConfig(): Promise<UserConfig> {
     result.chatgptApiModel = 'gpt-4'
   }
   if (
-    result.claudeApiModel !== ClaudeAPIModel['claude-2'] ||
+    result.claudeApiModel !== ClaudeAPIModel['claude-3'] ||
     result.claudeApiModel !== ClaudeAPIModel['claude-instant-1']
   ) {
-    result.claudeApiModel = ClaudeAPIModel['claude-2']
+    result.claudeApiModel = ClaudeAPIModel['claude-3']
   }
   return defaults(result, userConfigWithDefaultValue)
 }

@@ -16,21 +16,33 @@ export class ClaudeApiBot extends AbstractBot {
   }
 
   async fetchCompletionApi(prompt: string, signal?: AbortSignal) {
-    return fetch('https://api.anthropic.com/v1/complete', {
+    const isMessagesAPI = this.config.claudeApiModel === ClaudeAPIModel['claude-3']
+    const endpoint = isMessagesAPI ? 'https://api.anthropic.com/v1/messages' : 'https://api.anthropic.com/v1/complete'
+    
+    const headers = {
+      'content-type': 'application/json',
+      'x-api-key': this.config.claudeApiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    }
+
+    const body = isMessagesAPI ? {
+      model: this.getModelName(),
+      messages: [{ role: 'user', content: prompt }],
+      stream: true,
+      max_tokens: 8192,
+    } : {
+      prompt,
+      model: this.getModelName(),
+      max_tokens_to_sample: 100_000,
+      stream: true,
+    }
+
+    return fetch(endpoint, {
       method: 'POST',
       signal,
-      headers: {
-        'content-type': 'application/json',
-        'x-api-key': this.config.claudeApiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true',
-      },
-      body: JSON.stringify({
-        prompt,
-        model: this.getModelName(),
-        max_tokens_to_sample: 100_000,
-        stream: true,
-      }),
+      headers,
+      body: JSON.stringify(body),
     })
   }
 
@@ -42,23 +54,27 @@ export class ClaudeApiBot extends AbstractBot {
     if (!this.conversationContext) {
       this.conversationContext = { prompt: '' }
     }
-    this.conversationContext.prompt += `\n\nHuman: ${params.prompt}\n\nAssistant:`
 
-    const resp = await this.fetchCompletionApi(this.conversationContext.prompt, params.signal)
+    const isMessagesAPI = this.config.claudeApiModel === ClaudeAPIModel['claude-3']
+    const prompt = isMessagesAPI ? params.prompt : `${this.conversationContext.prompt}\n\nHuman: ${params.prompt}\n\nAssistant:`
 
+    const resp = await this.fetchCompletionApi(prompt, params.signal)
     let result = ''
 
     await parseSSEResponse(resp, (message) => {
       console.debug('claude sse message', message)
-      const data = JSON.parse(message) as { completion: string }
-      if (data.completion) {
-        result += data.completion
+      const data = JSON.parse(message)
+      const content = isMessagesAPI ? data.delta?.text : data.completion
+      if (content) {
+        result += content
         params.onEvent({ type: 'UPDATE_ANSWER', data: { text: result.trimStart() } })
       }
     })
 
     params.onEvent({ type: 'DONE' })
-    this.conversationContext!.prompt += result
+    if (!isMessagesAPI) {
+      this.conversationContext!.prompt += result
+    }
   }
 
   private getModelName() {
@@ -66,7 +82,7 @@ export class ClaudeApiBot extends AbstractBot {
       case ClaudeAPIModel['claude-instant-1']:
         return 'claude-instant-1.2'
       default:
-        return 'claude-2.1'
+        return 'claude-3-5-sonnet-latest'
     }
   }
 

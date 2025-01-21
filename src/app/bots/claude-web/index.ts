@@ -15,7 +15,7 @@ export class ClaudeWebBot extends AbstractBot {
 
   constructor() {
     super()
-    this.model = 'claude-2.1'
+    this.model = 'claude-3-5-sonnet-latest'
   }
 
   async doSendMessage(params: SendMessageParams): Promise<void> {
@@ -52,9 +52,9 @@ export class ClaudeWebBot extends AbstractBot {
     })
 
     // different models are available for different accounts
-    if (!resp.ok && resp.status === 403 && this.model === 'claude-2.1') {
+    if (!resp.ok && resp.status === 403 && this.model === 'claude-3') {
       if ((await resp.text()).includes('model_not_allowed')) {
-        this.model = 'claude-2.0'
+        this.model = 'claude-3-5-sonnet-latest'
         return this.doSendMessage(params)
       }
     }
@@ -83,6 +83,6 @@ export class ClaudeWebBot extends AbstractBot {
   }
 
   get name() {
-    return 'Claude (webapp/claude-2)'
+    return 'Claude (webapp/claude-3)'
   }
 }
